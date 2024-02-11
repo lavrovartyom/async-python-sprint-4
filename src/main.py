@@ -4,6 +4,7 @@ from fastapi.responses import ORJSONResponse
 
 from api import views
 from core.config import settings
+from core.middleware import BlockSubnetMiddleware
 from db import dispose_db, init_db
 
 app = FastAPI(
@@ -14,6 +15,7 @@ app = FastAPI(
 )
 
 app.include_router(views.router)
+app.add_middleware(BlockSubnetMiddleware)
 
 
 @app.on_event("startup")
