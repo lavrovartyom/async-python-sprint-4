@@ -5,6 +5,7 @@ from pydantic import BaseModel, HttpUrl
 from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
 from db import get_session
@@ -43,13 +44,24 @@ async def create_short_url(
 
 
 @router.get("/{short_id}")
-async def redirect_to_original(short_id: str, db: AsyncSession = Depends(get_session)):
+async def redirect_to_original(
+    short_id: str, request: Request, db: AsyncSession = Depends(get_session)
+):
     result = await db.execute(select(URL).where(URL.short_id == short_id))
     url_instance = result.scalars().first()
 
     if url_instance is None:
         raise HTTPException(status_code=404, detail="Shortened URL not found")
 
+    # Создаем запись в таблице `Log`
+    log_entry = Log(
+        url_id=url_instance.id,
+        client_info=request.client.host,  # пример получения информации о клиенте
+    )
+    db.add(log_entry)
+    await db.commit()
+
+    # Перенаправляем на оригинальный URL
     return RedirectResponse(url=url_instance.original_url, status_code=307)
 
 
@@ -74,6 +86,7 @@ async def get_url_usage(
             logs_query.order_by(Log.accessed_at.desc()).limit(max_result).offset(offset)
         )
         logs = logs.scalars().all()
+
         return {
             "total": await db.execute(
                 select(func.count(Log.id)).where(Log.url_id == url_instance.id)
@@ -83,9 +96,10 @@ async def get_url_usage(
                 for log in logs
             ],
         }
-    else:
-        total = await db.execute(
-            select(func.count(Log.id)).where(Log.url_id == url_instance.id)
-        )
-        total = total.scalar()
-        return {"total": total}
+
+    total = await db.execute(
+        select(func.count(Log.id)).where(Log.url_id == url_instance.id)
+    )
+    total = total.scalar()
+
+    return {"total": total}
