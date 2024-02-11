@@ -53,15 +53,13 @@ async def redirect_to_original(
     if url_instance is None:
         raise HTTPException(status_code=404, detail="Shortened URL not found")
 
-    # Создаем запись в таблице `Log`
     log_entry = Log(
         url_id=url_instance.id,
-        client_info=request.client.host,  # пример получения информации о клиенте
+        client_info=request.client.host,
     )
     db.add(log_entry)
     await db.commit()
 
-    # Перенаправляем на оригинальный URL
     return RedirectResponse(url=url_instance.original_url, status_code=307)
 
 
