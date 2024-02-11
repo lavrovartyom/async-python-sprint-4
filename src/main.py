@@ -3,11 +3,11 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
 from api import views
-from core import config
+from core.config import settings
 from db import dispose_db, init_db
 
 app = FastAPI(
-    title=config.PROJECT_NAME,
+    title=settings.PROJECT_NAME,
     docs_url="/api/openapi",
     openapi_url="/api/openapi.json",
     default_response_class=ORJSONResponse,
@@ -29,6 +29,6 @@ async def shutdown_event():
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
-        host=config.PROJECT_HOST,
-        port=config.PROJECT_PORT,
+        host=settings.PROJECT_HOST,
+        port=settings.PROJECT_PORT,
     )
