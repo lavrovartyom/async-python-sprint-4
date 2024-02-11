@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -11,6 +11,7 @@ class URL(Base):
     original_url = Column(String, unique=True)
     short_id = Column(String, unique=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    is_active = Column(Boolean, default=True)
 
 
 class Log(Base):
