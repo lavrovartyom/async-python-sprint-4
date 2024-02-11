@@ -13,7 +13,7 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
 )
 
-app.include_router(views.router, prefix="/api/v1")
+app.include_router(views.router)
 
 
 @app.on_event("startup")
