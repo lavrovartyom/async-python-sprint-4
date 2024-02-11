@@ -2,8 +2,9 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
-from api import base
+from api import views
 from core import config
+from db import dispose_db, init_db
 
 app = FastAPI(
     title=config.PROJECT_NAME,
@@ -12,7 +13,17 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
 )
 
-app.include_router(base.router, prefix="/api/v1")
+app.include_router(views.router, prefix="/api/v1")
+
+
+@app.on_event("startup")
+async def startup_event():
+    await init_db()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await dispose_db()
 
 
 if __name__ == "__main__":

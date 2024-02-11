@@ -1,6 +1,9 @@
-
+sqlalchemy==2.0.25
+asyncpg==0.29.0
 fastapi==0.79.0
 orjson==3.9.13
 pydantic==1.9.0
 uvicorn==0.18.2
 uvloop==0.14.0; sys_platform != "win32" and implementation_name == "cpython"
+python-dotenv==1.0.1
+greenlet==3.0.3
