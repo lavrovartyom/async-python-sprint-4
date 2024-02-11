@@ -1,8 +1,10 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, HttpUrl
 from sqlalchemy import func
+from sqlalchemy.exc import DBAPIError, OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from starlette.requests import Request
@@ -21,6 +23,44 @@ class UrlCreate(BaseModel):
 
 class UrlResponse(BaseModel):
     short_id: str
+
+
+@router.get(path="/ping")
+async def ping_database(db: AsyncSession = Depends(get_session)):
+    try:
+        result = await db.execute(select(func.now()))
+
+        return JSONResponse(
+            content={"status": "available", "time": str(result.scalar())},
+            status_code=200,
+        )
+    except OperationalError as op_err:
+        return JSONResponse(
+            content={
+                "status": "unavailable",
+                "error": "OperationalError",
+                "detail": str(op_err),
+            },
+            status_code=503,
+        )
+    except DBAPIError as dbapi_err:
+        return JSONResponse(
+            content={
+                "status": "unavailable",
+                "error": "DBAPIError",
+                "detail": str(dbapi_err),
+            },
+            status_code=503,
+        )
+    except Exception as e:
+        return JSONResponse(
+            content={
+                "status": "unavailable",
+                "error": "UnknownError",
+                "detail": str(e),
+            },
+            status_code=503,
+        )
 
 
 @router.post(path="/", response_model=UrlResponse, status_code=status.HTTP_201_CREATED)
