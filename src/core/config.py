@@ -7,7 +7,7 @@ from .logger import LOGGING
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "My app"
+    PROJECT_NAME: str = "my_app"
     PROJECT_HOST: str = "0.0.0.0"
     PROJECT_PORT: int = 8000
     DB_USER: str = "postgres"
